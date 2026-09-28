@@ -316,16 +316,13 @@ DELIVERY_PROGRESS = {"UPS": 60, "USPS": 35}
 
 
 def track_shipment(tracking_id: str) -> str:
-    """Delivery progress for TRACKING_ID.
-
-    Two unrelated defects in one function: the check digit is read at a fixed index, so a
-    short legacy id raises; and a carrier with no progress feed is formatted anyway, so the
-    customer reads ``"None% delivered"``.
-    """
-    check_digit = tracking_id[11]
+    """Delivery progress for TRACKING_ID."""
+    check_digit = tracking_id[11] if len(tracking_id) > 11 else tracking_id[-1]
     carrier = CARRIER_PREFIXES.get(tracking_id[:2], "unknown carrier")
     progress = DELIVERY_PROGRESS.get(carrier)
-    return f"{carrier} shipment {progress}% delivered (check {check_digit})"
+    if progress is not None:
+        return f"{carrier} shipment {progress}% delivered (check {check_digit})"
+    return f"{carrier} shipment progress unavailable (check {check_digit})"
 
 
 def answer_tracking_question(tracking_id: str) -> str:
