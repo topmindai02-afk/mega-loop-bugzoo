@@ -290,11 +290,12 @@ def format_vat_line(profile: dict | None) -> str:
 def convert_to_local(amount_usd: float, profile: dict | None, currency: str) -> float:
     """The quote in the customer's currency, VAT included.
 
-    Reads the profile without checking it exists and the rate table without a fallback,
-    so either gap raises.
+    Safely checks whether the profile exists and falls back to a 1.0 exchange rate
+    when the currency is unlisted.
     """
-    vat = profile["vat"] or 0
-    return round(amount_usd * FX_RATES[currency] * (1 + vat / 100), 2)
+    vat = (profile.get("vat", 0) or 0) if profile else 0
+    rate = FX_RATES.get(currency, 1.0)
+    return round(amount_usd * rate * (1 + vat / 100), 2)
 
 
 def quote_international_order(region: str, currency: str, amount_usd: float) -> str:
